@@ -1,1 +1,10 @@
-# Logic for loading stock market data will be defined here
+import pandas as pd
+
+class DataLoader:
+    def __init__(self, file_path):
+        self.file_path = file_path
+
+    def load_data(self):
+        # Load data from a CSV file
+        data = pd.read_csv(self.file_path)
+        return data

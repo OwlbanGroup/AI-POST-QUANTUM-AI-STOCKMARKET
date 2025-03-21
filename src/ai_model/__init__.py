@@ -1,1 +1,1 @@
-# AI Model package
+# AI Model Initialization
