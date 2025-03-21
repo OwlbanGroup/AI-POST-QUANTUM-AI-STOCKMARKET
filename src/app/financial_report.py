@@ -4,9 +4,12 @@ class FinancialReport:
         self.compliance = compliance
 
     def generate_report(self):
+        executed_trades = self.trading_engine.orders
         report = {
-            "total_orders": len(self.trading_engine.orders),
+            "total_orders": len(executed_trades),
             "compliance_check": self.compliance.generate_report(),
-            "executed_trades": self.trading_engine.orders
+            "executed_trades": executed_trades,
+            "total_executed_trades": len(executed_trades),  # Count of executed trades
+            "trade_summary": [{"type": trade['type'], "amount": trade['amount'], "price": trade['price']} for trade in executed_trades]  # Summary of executed trades
         }
         return report

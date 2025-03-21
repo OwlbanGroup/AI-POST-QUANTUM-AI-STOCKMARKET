@@ -22,7 +22,8 @@ summary_report = {
     'average_close': average_close,
     'consistent_upward_trend': consistent_upward_trend,
     'high_yield_stocks': high_yield_stocks,
-    'total_high_yield_stocks': high_yield_stocks.shape[0]  # Count of high-yield stocks
+    'total_high_yield_stocks': high_yield_stocks.shape[0],  # Count of high-yield stocks
+    'high_yield_stocks_list': high_yield_stocks[['stock_name', 'dividend_yield']].to_dict(orient='records')  # List of high-yield stocks
 }
 
 print(summary_report)

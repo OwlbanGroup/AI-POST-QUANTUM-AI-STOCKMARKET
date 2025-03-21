@@ -7,9 +7,12 @@ class TradingStrategy:
         return f"Trading strategy set to {strategy}."
 
     def execute_trade(self, market_analysis):
-        # Placeholder for trade execution logic based on market analysis
-        if self.strategy == "default":
-            # Example logic for default strategy
-            return "Executed trade based on default strategy."
+        # Implement trade execution logic based on market analysis
+        if self.strategy == "high_yield":
+            # Logic for high-yield strategy
+            return "Executed trade based on high-yield strategy."
+        elif self.strategy == "momentum":
+            # Logic for momentum strategy
+            return "Executed trade based on momentum strategy."
         else:
-            return f"Executed trade based on {self.strategy} strategy."
+            return "Executed trade based on default strategy."

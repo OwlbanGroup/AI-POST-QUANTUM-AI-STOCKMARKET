@@ -15,9 +15,14 @@ class Trading:
     def execute_trades(self):
         # Logic to execute trades based on orders
         for order in self.orders:
-            # Placeholder for trade execution logic
-            print(f"Executing {order['type']} order for {order['amount']} at {order['price']}")
-        self.orders.clear()  # Clear orders after execution
-
+            if order['type'] == 'buy':
+                # Implement buy order execution logic here
+                print(f"Executing buy order for {order['amount']} at {order['price']}")
+            elif order['type'] == 'sell':
+                # Implement sell order execution logic here
+                print(f"Executing sell order for {order['amount']} at {order['price']}")
+            else:
+                print(f"Invalid order type: {order['type']}")
     def get_orders(self):
         return self.orders
+        # Add error handling for invalid orders
