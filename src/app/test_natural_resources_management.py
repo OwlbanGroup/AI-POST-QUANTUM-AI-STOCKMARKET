@@ -1,5 +1,5 @@
 import unittest
-from natural_resources_management import NaturalResourcesManagement
+from src.app.natural_resources_management import NaturalResourcesManagement
 from src.data.data_loader import DataLoader
 from src.data.data_preprocessing import DataPreprocessor
 
