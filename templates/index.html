@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Status</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <h1>Flask API Status</h1>
+    <button id="check-status">Check Status</button>
+    <div id="status-message"></div>
+
+    <script>
+        document.getElementById('check-status').addEventListener('click', function() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('status-message').innerText = data.status;
+                })
+                .catch(error => {
+                    document.getElementById('status-message').innerText = 'Error: ' + error;
+                });
+        });
+    </script>
+</body>
+</html>
