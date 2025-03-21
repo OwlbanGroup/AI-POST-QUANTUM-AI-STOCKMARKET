@@ -7,8 +7,7 @@ class DataLoader:
     def load_data(self):
         # Load data from a CSV file
         try:
-            try:
-        data = pd.read_csv(self.file_path)
+            data = pd.read_csv(self.file_path)
 
 
 
@@ -113,22 +112,19 @@ class DataLoader:
 
 
 
-        except FileNotFoundError:
-            print(f"Error: The file {self.file_path} was not found.")
-            return None
-        except pd.errors.EmptyDataError:
-            print("Error: The file is empty.")
+
+
+
+
+
+
+
+
+
+        except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+            print(f"Error: {e}")
             return None
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
-        except FileNotFoundError:
-            print(f"Error: The file {self.file_path} was not found.")
-            return None
-        except pd.errors.EmptyDataError:
-            print("Error: The file is empty.")
-            return None
-        except pd.errors.ParserError:
-            print("Error: The file could not be parsed. Please check the file format.")
-            return None
-        return data
+        return data if 'data' in locals() else None
