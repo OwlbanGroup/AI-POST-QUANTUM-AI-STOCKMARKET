@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Financial Report</title>
+</head>
+<body>
+    <h1>Financial Report</h1>
+    <h2>Total Orders: {{ report.total_orders }}</h2>
+    <h3>Compliance Check</h3>
+    <ul>
+        {% for regulation in report.compliance_check.regulations %}
+            <li>{{ regulation }}</li>
+        {% endfor %}
+    </ul>
+    <h3>Executed Trades</h3>
+    <ul>
+        {% for trade in report.executed_trades %}
+            <li>{{ trade }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
