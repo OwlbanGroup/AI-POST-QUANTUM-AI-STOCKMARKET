@@ -34,6 +34,8 @@ def train_model():
     
     preprocessor = DataPreprocessor(data)
     processed_data = preprocessor.preprocess()
+    print("Loaded Data:", processed_data)  # Debugging statement to check loaded data
+    preprocessor.print_data_types()  # Print data types after preprocessing
     
     trainer = ModelTrainer(processed_data)
     score = trainer.train_model()
