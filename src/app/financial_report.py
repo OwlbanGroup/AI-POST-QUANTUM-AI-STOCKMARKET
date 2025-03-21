@@ -6,6 +6,7 @@ class FinancialReport:
     def generate_report(self):
         executed_trades = self.trading_engine.orders
         report = {
+            "post_quantum_insights": "Insights based on post-quantum analysis will be included here.",
             "total_orders": len(executed_trades),
             "compliance_check": self.compliance.generate_report(),
             "executed_trades": executed_trades,

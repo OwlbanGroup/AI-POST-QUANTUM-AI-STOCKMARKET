@@ -6,7 +6,12 @@ class ModelTrainer:
         self.data = data
         self.model = StockMarketModel()
 
+    def quantum_resistant_data_handling(self, data):
+        # Placeholder for quantum-resistant data handling logic
+        return data  # Modify this to implement actual handling
+
     def prepare_data(self):
+        self.data = self.quantum_resistant_data_handling(self.data)
         # Assuming 'target' is the column we want to predict
         X = self.data.drop('target', axis=1)
         y = self.data['target']
