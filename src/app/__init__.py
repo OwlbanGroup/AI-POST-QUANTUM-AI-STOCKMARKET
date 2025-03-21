@@ -7,6 +7,10 @@ main_bp = Blueprint('main', __name__)
 def status():
     return jsonify({"status": "running"}), 200
 
+@main_bp.route('/status')
+def status():
+    return jsonify({"status": "running"}), 200
+
 app.register_blueprint(main_bp)
 
 if __name__ == "__main__":

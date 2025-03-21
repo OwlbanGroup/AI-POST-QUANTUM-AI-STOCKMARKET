@@ -10,4 +10,5 @@ python-dotenv
 Flask-RESTPlus
 sentry-sdk
 sqlalchemy
+post_quantum_library
 sqlalchemy
