@@ -1,8 +1,4 @@
-Flask
-pandas
-scikit-learn
-numpy
-Flask
+DATEFlask
 pandas
 scikit-learn
 numpy
@@ -10,5 +6,5 @@ python-dotenv
 Flask-RESTPlus
 sentry-sdk
 sqlalchemy
-post_quantum_library
+# post_quantum_library
 sqlalchemy
