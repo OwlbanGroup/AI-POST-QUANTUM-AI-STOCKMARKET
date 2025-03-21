@@ -2,7 +2,7 @@ from flask import Flask, Blueprint
 from sentry_sdk import init
 
 # Initialize Sentry
-init(dsn="your_sentry_dsn_here")
+# init(dsn="your_sentry_dsn_here")
 
 from src.utils.error_handling import handle_error
 
