@@ -7,12 +7,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Welcome to the AI Stock Market Application!"
+    return "Welcome to the AI Stock Market Application! Use /train_model to train the model."
 
-@app.route('/train_model')
+@app.route('/train_model', methods=['GET', 'POST'])
 def train_model():
-    # Load and preprocess data
-    data_loader = DataLoader('path_to_your_data.csv')
+    # Load and preprocess data from a CSV file
+    data_loader = DataLoader('src/data/sample_data.csv')  # Updated to use the sample data file
     data = data_loader.load_data()
     
     preprocessor = DataPreprocessor(data)

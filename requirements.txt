@@ -1,5 +1,4 @@
-# List of dependencies for the project
-numpy
+Flask
 pandas
-tensorflow  # or pytorch, depending on the AI framework used
-qiskit  # if quantum computing is involved
+scikit-learn
+numpy
