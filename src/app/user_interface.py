@@ -1,15 +1,27 @@
-from flask import render_template, request
-from app.payment_facilitation import PaymentFacilitator
-from app.gold_token import GoldToken
+from flask import Flask, render_template, request
+from natural_resources_management import NaturalResourcesManagement
+from src.ai_model.predictive_model import PredictiveModel
 
-# Initialize payment facilitator
-payment_facilitator = PaymentFacilitator()
+app = Flask(__name__)
+manager = NaturalResourcesManagement()
+predictive_model = PredictiveModel()
 
-def display_home():
+@app.route('/')
+def home():
     return render_template('home.html')
 
-def handle_payment():
-    amount = request.form.get('amount')
-    payment_method = request.form.get('payment_method')
-    response = payment_facilitator.process_payment(amount, payment_method)
+@app.route('/add_resource', methods=['POST'])
+def add_resource():
+    resource_name = request.form['resource_name']
+    quantity = request.form['quantity']
+    forecasted_needs = request.form.get('forecasted_needs')
+    response = manager.add_resource(resource_name, quantity, forecasted_needs)
     return response
+
+@app.route('/generate_report', methods=['GET'])
+def generate_report():
+    report = manager.generate_report(predictive_model=predictive_model)
+    return render_template('report.html', report=report)
+
+if __name__ == '__main__':
+    app.run(debug=True)

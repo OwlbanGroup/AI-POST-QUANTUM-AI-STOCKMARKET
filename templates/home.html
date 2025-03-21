@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>AI Stock Market</title>
+    <title>Natural Resources Management</title>
 </head>
 <body>
-    <h1>Welcome to the AI Stock Market Application</h1>
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('manage_companies') }}">Manage Companies</a></li>
-            <li><a href="{{ url_for('market_analysis') }}">Market Analysis</a></li>
-        </ul>
-    </nav>
+    <h1>Natural Resources Management</h1>
+    <form action="/add_resource" method="POST">
+        <label for="resource_name">Resource Name:</label>
+        <input type="text" id="resource_name" name="resource_name" required>
+        <br>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" required>
+        <br>
+        <label for="forecasted_needs">Forecasted Needs (optional):</label>
+        <input type="text" id="forecasted_needs" name="forecasted_needs">
+        <br>
+        <input type="submit" value="Add Resource">
+    </form>
+    <br>
+    <a href="/generate_report">Generate Report</a>
 </body>
 </html>

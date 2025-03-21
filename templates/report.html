@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Report</title>
+</head>
+<body>
+    <h1>Resource Report</h1>
+    <h2>Total Resources: {{ report.total_resources }}</h2>
+    <h3>Resources:</h3>
+    <ul>
+        {% for resource, quantity in report.resources.items() %}
+            <li>{{ resource }}: {{ quantity }}</li>
+        {% endfor %}
+    </ul>
+    {% if report.predictions %}
+        <h3>Predictions:</h3>
+        <ul>
+            {% for prediction in report.predictions %}
+                <li>{{ prediction }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="/">Back to Home</a>
+</body>
+</html>

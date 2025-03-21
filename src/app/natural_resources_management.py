@@ -14,11 +14,17 @@ class NaturalResourcesManagement:
         management_report = {name: quantity for name, quantity in self.resources.items()}
         return management_report
 
-    def generate_report(self, historical_data=None, data_loader=None, data_preprocessor=None):
+    def generate_report(self, historical_data=None, data_loader=None, data_preprocessor=None, predictive_model=None):
         if data_loader and data_preprocessor:
             # Load and preprocess historical data
             data = data_loader.load_data()
             preprocessed_data = data_preprocessor.preprocess()
+        
+        if predictive_model:
+            # Prepare data for prediction
+            X = ...  # Extract features from historical data
+            predictions = predictive_model.predict(X)
+            report["predictions"] = predictions
         
         report = {
             "total_resources": len(self.resources),
