@@ -1,4 +1,11 @@
-Flask
+TEFlask
 pandas
 scikit-learn
 numpy
+python-dotenv
+Flask-RESTPlus
+sentry-sdk
+Flask-RESTPlus
+sentry-sdk
+python-dotenv
+python-dotenv
