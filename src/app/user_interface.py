@@ -1,27 +1,26 @@
-from flask import Flask, render_template, request
-from natural_resources_management import NaturalResourcesManagement
-from src.ai_model.predictive_model import PredictiveModel
+from flask import Flask, render_template
+from src.data.real_time_data import RealTimeData
 
+class UserInterface:
+    def __init__(self, app):
+        self.app = app
+        self.setup_routes()
+
+    def setup_routes(self):
+        @self.app.route('/')
+        def home():
+            return render_template('index.html')
+
+        @self.app.route('/real_time/<ticker>')
+        def real_time(ticker):
+            data_handler = RealTimeData(ticker)
+            data = data_handler.fetch_real_time_data()
+            processed_data = data_handler.process_data(data)
+            return render_template('real_time.html', data=processed_data)
+
+# Initialize Flask app
 app = Flask(__name__)
-manager = NaturalResourcesManagement()
-predictive_model = PredictiveModel()
-
-@app.route('/')
-def home():
-    return render_template('home.html')
-
-@app.route('/add_resource', methods=['POST'])
-def add_resource():
-    resource_name = request.form['resource_name']
-    quantity = request.form['quantity']
-    forecasted_needs = request.form.get('forecasted_needs')
-    response = manager.add_resource(resource_name, quantity, forecasted_needs)
-    return response
-
-@app.route('/generate_report', methods=['GET'])
-def generate_report():
-    report = manager.generate_report(predictive_model=predictive_model)
-    return render_template('report.html', report=report)
+ui = UserInterface(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
