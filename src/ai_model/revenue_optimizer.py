@@ -1,4 +1,8 @@
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError as e:
+    raise ImportError("The 'pandas' library is required but not installed. Please install it using 'pip install pandas'.") from e
+
 import logging
 from .model import StockMarketModel  # Assuming this is the model to be used for predictions
 
