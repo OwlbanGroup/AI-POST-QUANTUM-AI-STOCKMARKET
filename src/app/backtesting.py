@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+from .trading_strategy import TradingStrategy  # Import the updated TradingStrategy class
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,11 +20,11 @@ class Backtester:
         # Implement the backtesting logic based on the strategy
         for date, row in data.iterrows():
             try:
-                action = self.strategy.decide_action(row)  # Get action from strategy
+                action = self.strategy.execute_trade(data.loc[:date])  # Get action from strategy
                 # Update positions and portfolio based on action
-                if action == 'buy':
+                if "buy" in action:
                     positions[date] = 1  # Example: Buy one unit
-                elif action == 'sell':
+                elif "sell" in action:
                     positions[date] = -1  # Example: Sell one unit
 
                 # Update portfolio value
