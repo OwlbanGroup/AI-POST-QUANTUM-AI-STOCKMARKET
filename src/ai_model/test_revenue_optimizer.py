@@ -8,10 +8,18 @@ sample_data = pd.DataFrame({
     'revenue': [100, 200, 300, 400, 500]  # Example revenue data
 })
 
-def test_revenue_optimizer():
-    optimizer = RevenueOptimizer(sample_data)
-    result = optimizer.optimize_revenue()
-    print("Optimization Result:", result)
+def run_tests():
+    for _ in range(3):
+        test_revenue_optimizer()
+    for _ in range(6):
+        test_revenue_optimizer()
+    for _ in range(9):
+        test_revenue_optimizer()
+    for _ in range(7):
+        test_revenue_optimizer()
+
+if __name__ == "__main__":
+    run_tests()
 
 if __name__ == "__main__":
     test_revenue_optimizer()

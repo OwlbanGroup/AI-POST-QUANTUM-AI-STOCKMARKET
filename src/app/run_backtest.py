@@ -1,5 +1,5 @@
 import pandas as pd
-from data_loader import DataLoader
+# from data_loader import DataLoader
 from trading_strategy import TradingStrategy
 from backtesting import Backtester
 
