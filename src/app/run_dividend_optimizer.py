@@ -1,4 +1,4 @@
-from data_loader import DataLoader
+from src.data.data_loader import DataLoader
 from dividend_optimizer import DividendOptimizer
 
 # Load historical market data
