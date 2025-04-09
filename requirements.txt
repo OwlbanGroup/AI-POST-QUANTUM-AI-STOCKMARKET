@@ -1,7 +1,26 @@
-numpy>=1.21.0
-pandas>=1.3.0
+# NVIDIA accelerated libraries
+cudf-cu11>=23.8  # GPU DataFrame
+cupy-cuda11x>=12.0  # GPU NumPy
+cuml-cu11>=23.8  # GPU ML
 scikit-learn>=1.0.0
 xgboost>=1.5.0
 tensorflow>=2.6.0  # Required for Keras models
 pqcrypto>=0.1.0
 joblib>=1.0.0
+cryptography>=36.0.0  # For quantum-resistant hashing
+requests>=2.26.0      # For Coetus API integration
+websockets>=10.0      # For real-time data streaming
+
+# Options trading dependencies
+yfinance>=0.1.70      # For options market data
+opstrat>=0.1.7        # Options pricing models (latest available version)
+tqdm>=4.62.3          # Progress bars for backtesting
+py_vollib>=1.0.1      # Options pricing (Black-Scholes)
+
+# Microsoft Fabric integration
+azure-identity>=1.12.0
+azure-synapse-spark>=0.1.0
+azure-storage-file-datalake>=12.9.0
+azure-core>=1.26.0
+# Microsoft Machine Learning integration
+azure-ai-ml>=1.10.0

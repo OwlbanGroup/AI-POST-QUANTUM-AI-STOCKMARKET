@@ -10,11 +10,15 @@ class TradingStrategy:
         self.max_position_size = max_position_size  # Max % of capital per trade
         self.stop_loss_pct = stop_loss_pct  # Stop loss percentage
         self.portfolio_value = 0
-    def set_strategy(self, strategy: str) -> str:
+    def set_strategy(self, strategy: str, options_strategy: str = None) -> str:
         """Set the trading strategy to use."""
         self.strategy = strategy
-        return f"Trading strategy set to {strategy}."
-
+        self.options_strategy = options_strategy
+        if options_strategy == 'covered_call':
+            from .covered_call_strategy import CoveredCallStrategy
+            self.options_handler = CoveredCallStrategy({})
+        return f"Trading strategy set to {strategy} with {options_strategy} options overlay."
+        
     def calculate_moving_average(self, data: pd.DataFrame, window: int) -> pd.Series:
         """Calculate simple moving average."""
         return data['close'].rolling(window=window).mean()
@@ -80,6 +84,13 @@ class TradingStrategy:
         latest = market_analysis.iloc[-1]
         indicators = self.indicators
         
+        # Check for covered call opportunities first
+        if hasattr(self, 'options_handler') and self.options_strategy == 'covered_call':
+            option_trade = self.options_handler.select_optimal_call(
+                latest['ticker'], latest['close'])
+            if option_trade:
+                return f"Executed {option_trade['action']} {latest['ticker']} {option_trade['strike']}C"
+                
         if self.strategy == "high_yield":
             # Enhanced high-yield strategy using Bollinger Bands
             if latest['close'] < indicators['bollinger']['lower'].iloc[-1]:

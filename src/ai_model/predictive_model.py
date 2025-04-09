@@ -8,6 +8,14 @@ import logging
 from datetime import datetime
 from typing import Dict, Union
 
+# NVIDIA TensorRT integration
+try:
+    import tensorrt
+    from tensorflow.python.compiler.tensorrt import trt_convert
+    TENSORRT_ENABLED = True
+except ImportError:
+    TENSORRT_ENABLED = False
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,6 +103,34 @@ class PredictiveModel:
             return True
         except Exception as e:
             logger.error(f"Error updating model: {e}")
+            return False
+
+    def optimize_with_tensorrt(self, model_path: str) -> bool:
+        """Optimize the model using TensorRT for faster inference."""
+        if not TENSORRT_ENABLED:
+            logger.warning("TensorRT not available - skipping optimization")
+            return False
+            
+        try:
+            # Conversion parameters
+            conversion_params = trt_convert.DEFAULT_TRT_CONVERSION_PARAMS
+            conversion_params = conversion_params._replace(
+                max_workspace_size_bytes=1 << 25,
+                precision_mode=trt_convert.TrtPrecisionMode.FP16
+            )
+            
+            # Convert and save optimized model
+            converter = trt_convert.TrtGraphConverterV2(
+                input_saved_model_dir=model_path,
+                conversion_params=conversion_params
+            )
+            converter.convert()
+            converter.save(f"{model_path}_trt")
+            
+            logger.info("Model successfully optimized with TensorRT")
+            return True
+        except Exception as e:
+            logger.error(f"TensorRT optimization failed: {e}")
             return False
 
     def evaluate_model(self, X_test, y_test) -> Dict[str, float]:

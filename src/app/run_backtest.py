@@ -15,11 +15,18 @@ if data is not None:
     # Create an instance of the backtester
     backtester = Backtester(trading_strategy)
 
-    # Run the backtest
-    results = backtester.run_backtest(data)
-
-    # Print the results
-    print("Backtest Results:")
+    # Check if options backtest is needed
+    if hasattr(trading_strategy, 'options_strategy') and trading_strategy.options_strategy:
+        from .options_backtester import OptionsBacktester
+        options_data = DataLoader('src/data/sample_options_data.csv').load_data()
+        options_backtester = OptionsBacktester(trading_strategy.options_handler)
+        results = options_backtester.run_backtest(data, options_data)
+        print("Options Backtest Results:")
+    else:
+        # Run regular backtest
+        results = backtester.run_backtest(data)
+        print("Backtest Results:")
+    
     print(results)
 else:
     print("Failed to load data.")
