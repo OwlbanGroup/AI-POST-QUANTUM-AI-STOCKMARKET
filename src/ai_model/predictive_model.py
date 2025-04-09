@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, VotingRegressor
 from xgboost import XGBRegressor
-from tensorflow.keras.models import load_model
+from tensorflow.python.keras.models import load_model
 import joblib
 import logging
 from datetime import datetime
