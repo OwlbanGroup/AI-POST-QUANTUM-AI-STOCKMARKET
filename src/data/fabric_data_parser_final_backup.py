@@ -1,4 +1,4 @@
-"""Enhanced Microsoft Fabric data parser with Azure integration."""
+"""Enhanced Microsoft Fabric data parser with Azure integration"""
 import pandas as pd
 import logging
 from typing import Optional, Dict, Any
@@ -10,7 +10,6 @@ DEPENDENCY_WARNINGS = []
 try:
     from azure.identity import DefaultAzureCredential
     from azure.storage.filedatalake import DataLakeServiceClient
-    from azure.ai.ml import MLClient
     AZURE_DEPS_AVAILABLE = True
 except ImportError as e:
     class DefaultAzureCredential:
@@ -18,10 +17,13 @@ except ImportError as e:
             DEPENDENCY_WARNINGS.append("azure-identity not installed")
     class DataLakeServiceClient:
         def __init__(self): pass
+    DEPENDENCY_WARNINGS.append(f"Azure Storage dependencies not available: {str(e)}")
+            from azure.ai.ml import MLClient
+except ImportError as e:
     class MLClient:
         def __init__(self): 
             DEPENDENCY_WARNINGS.append("azure-ai-ml not installed")
-    DEPENDENCY_WARNINGS.append(f"Azure dependencies not available: {str(e)}")
+    DEPENDENCY_WARNINGS.append(f"Azure ML dependencies not available: {str(e)}")
 
 try:
     from azure.synapse.spark import SparkClient
@@ -38,13 +40,11 @@ except ImportError as e:
         def __init__(self): 
             DEPENDENCY_WARNINGS.append("delta-spark not installed")
     DEPENDENCY_WARNINGS.append(f"Delta Lake dependencies not available: {str(e)}")
-
-class FabricDataParser:
-    def __init__(self, workspace_id: str, lakehouse_id: str,
+        def __init__(self, workspace_id: str, lakehouse_id: str,
                  storage_account: str = None, ml_workspace: str = None,
                  synapse_workspace: str = None):
-        """Initialize Fabric data parser with OneLake support.
-
+        """
+        Initialize Fabric data parser with OneLake support
         Args:
             workspace_id: Fabric workspace ID
             lakehouse_id: Fabric lakehouse ID
@@ -81,12 +81,11 @@ class FabricDataParser:
             )
 
     def load_data(self, table_name: str, delta_format: bool = False) -> Optional[pd.DataFrame]:
-        """Load data from Fabric lakehouse table with OneLake support.
-
+        """
+        Load data from Fabric lakehouse table with OneLake support
         Args:
             table_name: Name of the table to load
             delta_format: Whether to load as Delta table
-
         Returns:
             DataFrame with the loaded data or None if failed
         """
@@ -98,10 +97,10 @@ class FabricDataParser:
             self.logger.info(f"Loading data from table {table_name}")
             
             # Initialize Spark session
-            from pyspark.sql import SparkSession
-            spark = SparkSession.builder \
-                .appName("FabricDataParser") \
-                .getOrCreate()
+            spark = self.client.spark.connect(
+                workspace_id=self.workspace_id,
+                lakehouse_id=self.lakehouse_id
+            )
 
             if delta_format:
                 # Load as Delta table
@@ -118,12 +117,11 @@ class FabricDataParser:
             return None
 
     def parse_options_data(self, table_name: str, delta_format: bool = False) -> Optional[Dict[str, Any]]:
-        """Parse options data from Fabric table with OneLake support.
-
+        """
+        Parse options data from Fabric table with OneLake support
         Args:
             table_name: Name of the options data table
             delta_format: Whether to load as Delta table
-
         Returns:
             Dictionary with parsed options data or None if failed
         """
@@ -147,7 +145,7 @@ class FabricDataParser:
             return None
 
     def get_workspace_info(self) -> Dict[str, Any]:
-        """Get information about the Fabric workspace."""
+        """Get information about the Fabric workspace"""
         try:
             info = self.client.get_workspace(self.workspace_id)
             if self.synapse_client:
@@ -158,12 +156,11 @@ class FabricDataParser:
             return {}
             
     def export_to_powerbi(self, df: pd.DataFrame, dataset_name: str) -> bool:
-        """Export DataFrame to Power BI dataset.
-
+        """
+        Export DataFrame to Power BI dataset
         Args:
             df: DataFrame to export
             dataset_name: Name of Power BI dataset
-
         Returns:
             True if successful, False otherwise
         """
