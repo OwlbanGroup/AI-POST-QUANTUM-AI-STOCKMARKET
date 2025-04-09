@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor  # Example of an additional model type
+from sklearn.ensemble import RandomForestRegressor  # type: ignore # Example of an additional model type
 import logging
 
 # Set up logging
