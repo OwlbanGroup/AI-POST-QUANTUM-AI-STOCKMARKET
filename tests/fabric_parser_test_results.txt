@@ -1,0 +1,19 @@
+FabricDataParser Test Results
+============================
+
+1. Basic Functionality:
+- Parser initialized successfully with test workspace and lakehouse IDs
+- Credential object created (either real Azure credential or fallback)
+
+2. Dependency Status:
+- Azure dependencies available: [True/False]
+- Dependency warnings:
+  [List any warnings if present]
+
+3. Fallback Behavior:
+- Storage client: [Initialized/Fallback]
+- ML client: [Initialized/Fallback] 
+- Synapse client: [Initialized/Fallback]
+
+4. Recommended Next Steps:
+- [Add specific recommendations based on test results]

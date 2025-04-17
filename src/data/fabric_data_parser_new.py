@@ -7,27 +7,37 @@ from typing import Optional, Dict, Any
 AZURE_DEPS_AVAILABLE = False
 DEPENDENCY_WARNINGS = []
 
+# Azure imports with version checks
 try:
+    import pkg_resources
+    pkg_resources.require("azure-identity>=1.12.0")
+    pkg_resources.require("azure-storage-file-datalake>=12.9.0") 
+    pkg_resources.require("azure-ai-ml>=1.10.0")
+    
     from azure.identity import DefaultAzureCredential
     from azure.storage.filedatalake import DataLakeServiceClient
     from azure.ai.ml import MLClient
     AZURE_DEPS_AVAILABLE = True
-except ImportError as e:
+except (ImportError, pkg_resources.VersionConflict) as e:
     class DefaultAzureCredential:
         def __init__(self):
-            DEPENDENCY_WARNINGS.append("azure-identity not installed")
+            DEPENDENCY_WARNINGS.append("azure-identity not installed or version mismatch")
+    
     class DataLakeServiceClient:
-        def __init__(self): pass
+        def __init__(self, account_url, credential):
+            DEPENDENCY_WARNINGS.append("azure-storage-file-datalake not installed or version mismatch")
+    
     class MLClient:
-        def __init__(self): 
-            DEPENDENCY_WARNINGS.append("azure-ai-ml not installed")
-    DEPENDENCY_WARNINGS.append(f"Azure dependencies not available: {str(e)}")
+        def __init__(self, credential, workspace_name):
+            DEPENDENCY_WARNINGS.append("azure-ai-ml not installed or version mismatch")
+    
+    DEPENDENCY_WARNINGS.append(f"Azure dependencies issue: {str(e)}")
 
 try:
     from azure.synapse.spark import SparkClient
 except ImportError as e:
     class SparkClient:
-        def __init__(self): 
+        def __init__(self, credential, endpoint):
             DEPENDENCY_WARNINGS.append("azure-synapse-spark not installed")
     DEPENDENCY_WARNINGS.append(f"Azure Synapse dependencies not available: {str(e)}")
 
@@ -35,7 +45,7 @@ try:
     from delta.tables import DeltaTable
 except ImportError as e:
     class DeltaTable:
-        def __init__(self): 
+        def __init__(self):
             DEPENDENCY_WARNINGS.append("delta-spark not installed")
     DEPENDENCY_WARNINGS.append(f"Delta Lake dependencies not available: {str(e)}")
 
