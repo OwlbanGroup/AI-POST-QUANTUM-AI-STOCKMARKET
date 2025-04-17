@@ -4,12 +4,12 @@ from typing import Dict, Tuple
 
 class TradingStrategy:
     def __init__(self, predictive_model=None, max_position_size=0.1, stop_loss_pct=0.05):
-    
         self.indicators = {}
         self.predictive_model = predictive_model
         self.max_position_size = max_position_size  # Max % of capital per trade
         self.stop_loss_pct = stop_loss_pct  # Stop loss percentage
         self.portfolio_value = 0
+
     def set_strategy(self, strategy: str, options_strategy: str = None) -> str:
         """Set the trading strategy to use."""
         self.strategy = strategy
@@ -67,6 +67,15 @@ class TradingStrategy:
         })
         return resampled
 
+    def calculate_atr(self, data: pd.DataFrame, window: int = 14) -> pd.Series:
+        """Calculate Average True Range (ATR)."""
+        high_low = data['high'] - data['low']
+        high_close = (data['high'] - data['close'].shift()).abs()
+        low_close = (data['low'] - data['close'].shift()).abs()
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        atr = tr.rolling(window=window).mean()
+        return atr
+
     def update_indicators(self, data: pd.DataFrame) -> None:
         """Calculate and store all technical indicators."""
         self.indicators = {
@@ -75,7 +84,8 @@ class TradingStrategy:
             'rsi': self.calculate_rsi(data),
             'macd': self.calculate_macd(data),
             'bollinger': self.calculate_bollinger_bands(data),
-            'stochastic': self.calculate_stochastic(data)
+            'stochastic': self.calculate_stochastic(data),
+            'atr': self.calculate_atr(data)  # Add ATR to indicators
         }
 
     def execute_trade(self, market_analysis: pd.DataFrame) -> str:
@@ -92,11 +102,11 @@ class TradingStrategy:
                 return f"Executed {option_trade['action']} {latest['ticker']} {option_trade['strike']}C"
                 
         if self.strategy == "high_yield":
-            # Enhanced high-yield strategy using Bollinger Bands
-            if latest['close'] < indicators['bollinger']['lower'].iloc[-1]:
-                return "Executed buy trade based on high-yield strategy (oversold)."
-            elif latest['close'] > indicators['bollinger']['upper'].iloc[-1]:
-                return "Executed sell trade based on high-yield strategy (overbought)."
+            # Enhanced high-yield strategy using Bollinger Bands with additional confirmation
+            if latest['close'] < indicators['bollinger']['lower'].iloc[-1] and indicators['rsi'].iloc[-1] < 30:
+                return "Executed buy trade based on enhanced high-yield strategy (oversold)."
+            elif latest['close'] > indicators['bollinger']['upper'].iloc[-1] and indicators['rsi'].iloc[-1] > 70:
+                return "Executed sell trade based on enhanced high-yield strategy (overbought)."
             return "No trade executed based on high-yield strategy."
             
         elif self.strategy == "momentum":
