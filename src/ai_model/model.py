@@ -92,11 +92,12 @@ class AITradingModel:
     def secure_share_model(self, encryption_key: str = None) -> Dict[str, Any]:
         """Securely share model parameters with optional encryption."""
         model_params = self.get_model_parameters()
-        
+
         if encryption_key:
             # Placeholder for encryption implementation
-            # In a real implementation, this would encrypt the parameters
-            encrypted_params = self._encrypt_parameters(model_params, encryption_key)
+            encrypted_params = self._encrypt_parameters(
+                model_params, encryption_key
+            )
             return {
                 'encrypted': True,
                 'parameters': encrypted_params,
@@ -108,22 +109,21 @@ class AITradingModel:
                 'parameters': model_params
             }
 
-    def _encrypt_parameters(self, parameters: Dict[str, Any], 
-                           key: str) -> Dict[str, Any]:
+    def _encrypt_parameters(self, parameters: Dict[str, Any],
+                            key: str) -> Dict[str, Any]:
         """Encrypt model parameters using provided key."""
         # Placeholder for actual encryption implementation
-        # This would use a proper encryption library in production
         print(f"Encrypting parameters with key: {key[:8]}...")
         return parameters  # Return as-is for now (placeholder)
 
-    def receive_secure_model(self, shared_data: Dict[str, Any], 
-                            decryption_key: str = None) -> bool:
+    def receive_secure_model(self, shared_data: Dict[str, Any],
+                             decryption_key: str = None) -> bool:
         """Receive and update model from securely shared data."""
         if shared_data.get('encrypted', False):
             if not decryption_key:
                 print("Error: Decryption key required for encrypted model")
                 return False
-            
+
             # Decrypt the parameters
             decrypted_params = self._decrypt_parameters(
                 shared_data['parameters'], decryption_key
@@ -136,8 +136,8 @@ class AITradingModel:
             print("Model updated from unencrypted shared data")
             return True
 
-    def _decrypt_parameters(self, encrypted_params: Dict[str, Any], 
-                           key: str) -> Dict[str, Any]:
+    def _decrypt_parameters(self, encrypted_params: Dict[str, Any],
+                            key: str) -> Dict[str, Any]:
         """Decrypt model parameters using provided key."""
         # Placeholder for actual decryption implementation
         print(f"Decrypting parameters with key: {key[:8]}...")
