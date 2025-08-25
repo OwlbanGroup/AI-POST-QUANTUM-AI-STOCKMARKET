@@ -18,7 +18,7 @@ class FederatedLearning:
         self.model_parameters = None
         self.azure_ml_workspace = azure_ml_workspace
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize Azure ML integration if workspace is provided
         if azure_ml_workspace:
             self._init_azure_ml_integration()
@@ -28,7 +28,7 @@ class FederatedLearning:
         try:
             from azureml.core import Workspace, Experiment
             self.workspace = Workspace.get(name=self.azure_ml_workspace)
-            self.experiment = Experiment(workspace=self.workspace, 
+            self.experiment = Experiment(workspace=self.workspace,
                                          name='federated-learning')
             self.logger.info(
                 f"Azure ML integration initialized for workspace: "
@@ -42,43 +42,43 @@ class FederatedLearning:
             self.logger.error(
                 f"Failed to initialize Azure ML integration: {e}"
             )
-        
+
     def federated_averaging(
-        self, updates: List[Dict[str, Any]], 
+        self, updates: List[Dict[str, Any]],
         weights: Optional[List[float]] = None
     ) -> Dict[str, Any]:
         """Implement federated averaging algorithm with optional weighted
         averaging."""
         if not updates:
             raise ValueError("No updates provided for aggregation")
-        
+
         if weights and len(weights) != len(updates):
             raise ValueError("Number of weights must match number of updates")
-        
+
         aggregated_parameters = {}
-        
+
         for key in updates[0].keys():
             if weights:
                 # Weighted averaging
                 weighted_sum = np.zeros_like(updates[0][key])
                 total_weight = 0.0
-                
+
                 for i, update in enumerate(updates):
                     weight = weights[i]
                     weighted_sum += update[key] * weight
                     total_weight += weight
-                
+
                 aggregated_parameters[key] = weighted_sum / total_weight
             else:
                 # Simple averaging
                 param_list = [update[key] for update in updates]
                 aggregated_parameters[key] = np.mean(param_list, axis=0)
-        
+
         self.model_parameters = aggregated_parameters
         return aggregated_parameters
 
     def secure_aggregation(
-        self, updates: List[Dict[str, Any]], 
+        self, updates: List[Dict[str, Any]],
         secret_key: Optional[str] = None
     ) -> Dict[str, Any]:
         """Implement secure aggregation with differential privacy and
@@ -90,11 +90,11 @@ class FederatedLearning:
                 encrypted_updates.append(
                     self._encrypt_update(update, secret_key)
                 )
-            
+
             # For encrypted updates, we need to handle them differently
             # since they are dictionaries, not numpy arrays
             aggregated_encrypted = {}
-            
+
             # Derive encryption key for HMAC calculation
             kdf = HKDF(
                 algorithm=hashes.SHA256(),
@@ -104,7 +104,7 @@ class FederatedLearning:
                 backend=default_backend()
             )
             derived_key = kdf.derive(secret_key.encode())
-            
+
             # Aggregate each parameter separately
             for key in encrypted_updates[0].keys():
                 if isinstance(encrypted_updates[0][key], dict):
@@ -120,7 +120,7 @@ class FederatedLearning:
                         array = np.frombuffer(data, dtype=np.dtype(dtype))
                         array = array.reshape(shape)
                         arrays.append(array)
-                        
+
                     # Average the arrays
                     avg_array = np.mean(arrays, axis=0)
                     # Compute new HMAC for the aggregated result
@@ -138,7 +138,7 @@ class FederatedLearning:
                     # For non-encrypted parameters, use standard averaging
                     param_list = [update[key] for update in encrypted_updates]
                     aggregated_encrypted[key] = np.mean(param_list, axis=0)
-                        
+
             # Decrypt the aggregated result
             decrypted_result = self._decrypt_update(
                 aggregated_encrypted, secret_key
@@ -154,7 +154,7 @@ class FederatedLearning:
     ) -> Dict[str, Any]:
         """Encrypt model update using HMAC-based key derivation."""
         encrypted_update = {}
-        
+
         # Derive encryption key from secret
         kdf = HKDF(
             algorithm=hashes.SHA256(),
@@ -164,7 +164,7 @@ class FederatedLearning:
             backend=default_backend()
         )
         derived_key = kdf.derive(secret_key.encode())
-        
+
         for key, value in update.items():
             # Convert numpy arrays to bytes for encryption
             if isinstance(value, np.ndarray):
@@ -181,7 +181,7 @@ class FederatedLearning:
                 }
             else:
                 encrypted_update[key] = value
-        
+
         return encrypted_update
 
     def _decrypt_update(
@@ -189,7 +189,7 @@ class FederatedLearning:
     ) -> Dict[str, Any]:
         """Decrypt model update and verify integrity."""
         decrypted_update = {}
-        
+
         # Derive the same encryption key
         kdf = HKDF(
             algorithm=hashes.SHA256(),
@@ -199,7 +199,7 @@ class FederatedLearning:
             backend=default_backend()
         )
         derived_key = kdf.derive(secret_key.encode())
-        
+
         for key, value in encrypted_update.items():
             if isinstance(value, dict) and 'data' in value:
                 # Verify HMAC integrity
@@ -210,7 +210,7 @@ class FederatedLearning:
                     raise ValueError(
                         f"HMAC verification failed for parameter {key}"
                     )
-                
+
                 # Reconstruct numpy array
                 array = np.frombuffer(
                     value['data'], dtype=np.dtype(value['dtype'])
@@ -219,7 +219,7 @@ class FederatedLearning:
                 decrypted_update[key] = array
             else:
                 decrypted_update[key] = value
-        
+
         return decrypted_update
 
     def azure_ml_log_metrics(self, metrics: Dict[str, float]):
@@ -241,7 +241,7 @@ class FederatedLearning:
                 self.logger.info(f"Local metrics: {metrics}")
         else:
             self.logger.info(f"Local metrics: {metrics}")
-            
+
     def get_model_parameters(self) -> Dict[str, Any]:
         """Return the current model parameters."""
         return self.model_parameters
