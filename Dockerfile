@@ -1,5 +1,23 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.12-slim
+# Use NVIDIA CUDA base image compatible with Blackwell architecture
+FROM nvidia/cuda:12.4-runtime-ubuntu22.04
+
+# Set environment variables for NVIDIA Blackwell compatibility
+ENV CUDA_HOME=/usr/local/cuda
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Install Python and system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.12 \
+    python3.12-pip \
+    python3.12-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symbolic link for python
+RUN ln -s /usr/bin/python3.12 /usr/bin/python
 
 # Set the working directory in the container
 WORKDIR /app
@@ -7,7 +25,7 @@ WORKDIR /app
 # Copy the requirements file into the container
 COPY requirements.txt .
 
-# Install the required packages
+# Install the required packages with NVIDIA Blackwell optimizations
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container

@@ -15,6 +15,37 @@ delta-spark>=2.2.0
 # Power BI integration
 powerbiclient>=0.1.0
 
+# NVIDIA Blackwell GPU acceleration dependencies
+# RAPIDS for GPU-accelerated data processing (Blackwell optimized)
+cudf>=24.04.0
+cuml>=24.04.0
+cugraph>=24.04.0
+cuspatial>=24.04.0
+
+# NVIDIA TensorRT for Blackwell architecture optimization
+tensorrt>=10.0.0
+nvidia-tensorrt>=10.0.0
+
+# CUDA Toolkit components for Blackwell
+nvidia-cuda-runtime-cu12>=12.4.0
+nvidia-cudnn-cu12>=9.1.0
+nvidia-cublas-cu12>=12.4.0
+nvidia-cufft-cu12>=11.2.0
+nvidia-curand-cu12>=10.3.0
+nvidia-cusolver-cu12>=11.6.0
+nvidia-cusparse-cu12>=12.3.0
+nvidia-nccl-cu12>=2.20.0
+nvidia-nvtx-cu12>=12.4.0
+nvidia-nvjitlink-cu12>=12.4.0
+
+# PyTorch with CUDA 12.4 support for Blackwell
+torch>=2.3.0
+torchvision>=0.18.0
+torchaudio>=2.3.0
+
+# Google Gemini CLI integration
+google-gemini-cli>=1.0.0
+
 # Development tools
 pytest>=7.0.0
 black>=22.0.0

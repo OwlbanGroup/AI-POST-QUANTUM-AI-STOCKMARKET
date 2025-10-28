@@ -1,10 +1,21 @@
-"""Data loader with NVIDIA GPU acceleration"""
+"""Data loader with NVIDIA Blackwell GPU acceleration"""
 try:
     import cudf as pd
     GPU_ACCELERATED = True
+    # Blackwell-specific RAPIDS optimizations
+    try:
+        import cuml
+        import cugraph
+        import cuspatial
+        BLACKWELL_RAPIDS_OPTIMIZED = True
+        print("Blackwell RAPIDS optimizations enabled")
+    except ImportError:
+        BLACKWELL_RAPIDS_OPTIMIZED = False
+        print("Blackwell RAPIDS optimizations not available")
 except ImportError:
     import pandas as pd
     GPU_ACCELERATED = False
+    BLACKWELL_RAPIDS_OPTIMIZED = False
 from typing import Optional, Dict, Any
 from .fabric_data_parser import FabricDataParser
 import logging
