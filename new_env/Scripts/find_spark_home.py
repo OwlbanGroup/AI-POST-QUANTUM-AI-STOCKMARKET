@@ -1,4 +1,4 @@
-#!C:\Users\David L\OneDrive\Documents\GitHub\AI-POST-QUANTUM-AI-STOCKMARKET\new_env\Scripts\python.exe
+#!C:\Users\bsean\OneDrive\Apps\AI-POST-QUANTUM-AI-STOCKMARKET\new_env\Scripts\python.exe
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more

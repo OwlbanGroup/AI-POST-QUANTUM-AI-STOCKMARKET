@@ -10,10 +10,10 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 # Install Python and system dependencies
 RUN apt-get update && apt-get install -y \
-    python3.12 \
-    python3.12-pip \
-    python3.12-dev \
     build-essential \
+    python3.12 \
+    python3.12-dev \
+    python3.12-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Create symbolic link for python

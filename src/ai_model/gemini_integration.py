@@ -1,19 +1,20 @@
+"""Google Gemini API integration for enhanced AI analysis."""
+
 import os
 import json
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-import subprocess
-import tempfile
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
 class GeminiIntegration:
-    """Google Gemini CLI integration for enhanced AI analysis"""
+    """Google Gemini API integration for enhanced AI analysis"""
 
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize Gemini CLI integration
+        Initialize Gemini API integration
 
         Args:
             api_key: Google Gemini API key (optional, can be set via environment variable)
@@ -21,23 +22,11 @@ class GeminiIntegration:
         self.api_key = api_key or os.getenv('GEMINI_API_KEY')
         if not self.api_key:
             logger.warning("No Gemini API key provided. Set GEMINI_API_KEY environment variable.")
-
-        self.gemini_available = self._check_gemini_availability()
-        self.model = "gemini-pro"  # Default model
-
-    def _check_gemini_availability(self) -> bool:
-        """Check if Gemini CLI is available and properly configured"""
-        try:
-            result = subprocess.run(
-                ["gemini", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            return result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            logger.warning("Gemini CLI not available")
-            return False
+            self.gemini_available = False
+        else:
+            genai.configure(api_key=self.api_key)
+            self.gemini_available = True
+            self.model = genai.GenerativeModel('gemini-pro')  # Default model
 
     def analyze_market_data(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -50,54 +39,33 @@ class GeminiIntegration:
             Dictionary with Gemini analysis results
         """
         if not self.gemini_available:
-            return {"error": "Gemini CLI not available", "fallback": True}
+            return {"error": "Gemini API not available", "fallback": True}
 
         try:
             # Prepare market data for Gemini analysis
             prompt = self._create_market_analysis_prompt(market_data)
 
-            # Create temporary file for prompt
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write(prompt)
-                prompt_file = f.name
+            # Generate response using Gemini API
+            response = self.model.generate_content(prompt)
+            analysis = self._parse_gemini_response(response.text)
 
-            # Run Gemini CLI analysis
-            result = subprocess.run(
-                ["gemini", "analyze", "--model", self.model, "--file", prompt_file],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                env={**os.environ, "GEMINI_API_KEY": self.api_key} if self.api_key else os.environ
-            )
+            return {
+                "analysis": analysis,
+                "timestamp": datetime.now().isoformat(),
+                "model": "gemini-pro",
+                "success": True
+            }
 
-            # Clean up temporary file
-            os.unlink(prompt_file)
-
-            if result.returncode == 0:
-                analysis = self._parse_gemini_response(result.stdout)
-                return {
-                    "analysis": analysis,
-                    "timestamp": datetime.now().isoformat(),
-                    "model": self.model,
-                    "success": True
-                }
-            else:
-                logger.error(f"Gemini analysis failed: {result.stderr}")
-                return {"error": result.stderr, "fallback": True}
-
-        except subprocess.TimeoutExpired:
-            logger.error("Gemini analysis timed out")
-            return {"error": "Analysis timed out", "fallback": True}
-        except Exception as e:
-            logger.error(f"Gemini analysis error: {e}")
+        except (ValueError, Exception) as e:
+            logger.error("Gemini analysis error: %s", e)
             return {"error": str(e), "fallback": True}
 
     def _create_market_analysis_prompt(self, market_data: Dict[str, Any]) -> str:
         """Create a comprehensive prompt for Gemini market analysis"""
-        prompt = f"""Analyze the following stock market data and provide insights:
+        prompt = """Analyze the following stock market data and provide insights:
 
 Market Data:
-{json.dumps(market_data, indent=2)}
+%s
 
 Please provide:
 1. Current market sentiment analysis
@@ -115,7 +83,7 @@ Focus on:
 - Blackwell-optimized AI processing capabilities
 
 Provide analysis in a structured JSON format.
-"""
+""" % json.dumps(market_data, indent=2)
         return prompt
 
     def _parse_gemini_response(self, response: str) -> Dict[str, Any]:
@@ -202,8 +170,8 @@ Provide analysis in a structured JSON format.
 
             return enhanced_predictions
 
-        except Exception as e:
-            logger.error(f"Failed to enhance predictions with Gemini: {e}")
+        except (ValueError, Exception) as e:
+            logger.error("Failed to enhance predictions with Gemini: %s", e)
             return predictions
 
     def get_market_sentiment(self, symbol: str, timeframe: str = "1D") -> Dict[str, Any]:
@@ -220,7 +188,7 @@ Provide analysis in a structured JSON format.
         if not self.gemini_available:
             return {"error": "Gemini not available", "symbol": symbol}
 
-        prompt = f"""Analyze the market sentiment for {symbol} over the {timeframe} timeframe.
+        prompt = """Analyze the market sentiment for %s over the %s timeframe.
 
 Please provide:
 1. Overall sentiment (bullish/bearish/neutral)
@@ -229,36 +197,22 @@ Please provide:
 4. Potential catalysts for sentiment change
 5. Risk factors to consider
 
-Be specific to {symbol} and consider both technical and fundamental factors.
-"""
+Be specific to %s and consider both technical and fundamental factors.
+""" % (symbol, timeframe, symbol)
 
         try:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write(prompt)
-                prompt_file = f.name
+            # Generate response using Gemini API
+            response = self.model.generate_content(prompt)
 
-            result = subprocess.run(
-                ["gemini", "query", "--model", self.model, "--file", prompt_file],
-                capture_output=True,
-                text=True,
-                timeout=20,
-                env={**os.environ, "GEMINI_API_KEY": self.api_key} if self.api_key else os.environ
-            )
+            return {
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "sentiment_analysis": response.text.strip(),
+                "timestamp": datetime.now().isoformat(),
+                "success": True
+            }
 
-            os.unlink(prompt_file)
-
-            if result.returncode == 0:
-                return {
-                    "symbol": symbol,
-                    "timeframe": timeframe,
-                    "sentiment_analysis": result.stdout.strip(),
-                    "timestamp": datetime.now().isoformat(),
-                    "success": True
-                }
-            else:
-                return {"error": result.stderr, "symbol": symbol}
-
-        except Exception as e:
+        except (ValueError, Exception) as e:
             return {"error": str(e), "symbol": symbol}
 
     def is_available(self) -> bool:

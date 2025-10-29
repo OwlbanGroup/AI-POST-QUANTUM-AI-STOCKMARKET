@@ -12,19 +12,16 @@ from collections import namedtuple
 from . import _common
 from . import _psposix
 from . import _psutil_osx as cext
-from . import _psutil_posix as cext_posix
 from ._common import AccessDenied
 from ._common import NoSuchProcess
 from ._common import ZombieProcess
 from ._common import conn_tmap
 from ._common import conn_to_ntuple
+from ._common import debug
 from ._common import isfile_strict
 from ._common import memoize_when_activated
 from ._common import parse_environ_block
 from ._common import usage_percent
-from ._compat import PermissionError
-from ._compat import ProcessLookupError
-
 
 __extra__all__ = []
 
@@ -34,8 +31,8 @@ __extra__all__ = []
 # =====================================================================
 
 
-PAGESIZE = cext_posix.getpagesize()
-AF_LINK = cext_posix.AF_LINK
+PAGESIZE = cext.getpagesize()
+AF_LINK = cext.AF_LINK
 
 TCP_STATUSES = {
     cext.TCPS_ESTABLISHED: _common.CONN_ESTABLISHED,
@@ -114,8 +111,7 @@ def virtual_memory():
     """System virtual memory as a namedtuple."""
     total, active, inactive, wired, free, speculative = cext.virtual_mem()
     # This is how Zabbix calculate avail and used mem:
-    # https://github.com/zabbix/zabbix/blob/trunk/src/libs/zbxsysinfo/
-    #     osx/memory.c
+    # https://github.com/zabbix/zabbix/blob/master/src/libs/zbxsysinfo/osx/memory.c
     # Also see: https://github.com/giampaolo/psutil/issues/1277
     avail = inactive + free
     used = active + wired
@@ -173,14 +169,16 @@ def cpu_stats():
     )
 
 
-def cpu_freq():
-    """Return CPU frequency.
-    On macOS per-cpu frequency is not supported.
-    Also, the returned frequency never changes, see:
-    https://arstechnica.com/civis/viewtopic.php?f=19&t=465002.
-    """
-    curr, min_, max_ = cext.cpu_freq()
-    return [_common.scpufreq(curr, min_, max_)]
+if cext.has_cpu_freq():  # not always available on ARM64
+
+    def cpu_freq():
+        """Return CPU frequency.
+        On macOS per-cpu frequency is not supported.
+        Also, the returned frequency never changes, see:
+        https://arstechnica.com/civis/viewtopic.php?f=19&t=465002.
+        """
+        curr, min_, max_ = cext.cpu_freq()
+        return [_common.scpufreq(curr, min_, max_)]
 
 
 # =====================================================================
@@ -236,7 +234,7 @@ def sensors_battery():
 
 
 net_io_counters = cext.net_io_counters
-net_if_addrs = cext_posix.net_if_addrs
+net_if_addrs = cext.net_if_addrs
 
 
 def net_connections(kind='inet'):
@@ -263,9 +261,9 @@ def net_if_stats():
     ret = {}
     for name in names:
         try:
-            mtu = cext_posix.net_if_mtu(name)
-            flags = cext_posix.net_if_flags(name)
-            duplex, speed = cext_posix.net_if_duplex_speed(name)
+            mtu = cext.net_if_mtu(name)
+            flags = cext.net_if_flags(name)
+            duplex, speed = cext.net_if_duplex_speed(name)
         except OSError as err:
             # https://github.com/giampaolo/psutil/issues/1279
             if err.errno != errno.ENODEV:
@@ -289,6 +287,29 @@ def net_if_stats():
 def boot_time():
     """The system boot time expressed in seconds since the epoch."""
     return cext.boot_time()
+
+
+try:
+    INIT_BOOT_TIME = boot_time()
+except Exception as err:  # noqa: BLE001
+    # Don't want to crash at import time.
+    debug(f"ignoring exception on import: {err!r}")
+    INIT_BOOT_TIME = 0
+
+
+def adjust_proc_create_time(ctime):
+    """Account for system clock updates."""
+    if INIT_BOOT_TIME == 0:
+        return ctime
+
+    diff = INIT_BOOT_TIME - boot_time()
+    if diff == 0 or abs(diff) < 1:
+        return ctime
+
+    debug("system clock was updated; adjusting process create_time()")
+    if diff < 0:
+        return ctime - diff
+    return ctime + diff
 
 
 def users():
@@ -330,14 +351,6 @@ def pids():
 pid_exists = _psposix.pid_exists
 
 
-def is_zombie(pid):
-    try:
-        st = cext.proc_kinfo_oneshot(pid)[kinfo_proc_map['status']]
-        return st == cext.SZOMB
-    except OSError:
-        return False
-
-
 def wrap_exceptions(fun):
     """Decorator which translates bare OSError exceptions into
     NoSuchProcess and AccessDenied.
@@ -345,15 +358,17 @@ def wrap_exceptions(fun):
 
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
+        pid, ppid, name = self.pid, self._ppid, self._name
         try:
             return fun(self, *args, **kwargs)
-        except ProcessLookupError:
-            if is_zombie(self.pid):
-                raise ZombieProcess(self.pid, self._name, self._ppid)
-            else:
-                raise NoSuchProcess(self.pid, self._name)
-        except PermissionError:
-            raise AccessDenied(self.pid, self._name)
+        except ProcessLookupError as err:
+            if cext.proc_is_zombie(pid):
+                raise ZombieProcess(pid, name, ppid) from err
+            raise NoSuchProcess(pid, name) from err
+        except PermissionError as err:
+            raise AccessDenied(pid, name) from err
+        except cext.ZombieProcessError as err:
+            raise ZombieProcess(pid, name, ppid) from err
 
     return wrapper
 
@@ -473,8 +488,11 @@ class Process:
         )
 
     @wrap_exceptions
-    def create_time(self):
-        return self._get_kinfo_proc()[kinfo_proc_map['ctime']]
+    def create_time(self, monotonic=False):
+        ctime = self._get_kinfo_proc()[kinfo_proc_map['ctime']]
+        if not monotonic:
+            ctime = adjust_proc_create_time(ctime)
+        return ctime
 
     @wrap_exceptions
     def num_ctx_switches(self):
@@ -502,11 +520,6 @@ class Process:
 
     @wrap_exceptions
     def net_connections(self, kind='inet'):
-        if kind not in conn_tmap:
-            raise ValueError(
-                "invalid %r kind argument; choose between %s"
-                % (kind, ', '.join([repr(x) for x in conn_tmap]))
-            )
         families, types = conn_tmap[kind]
         rawlist = cext.proc_net_connections(self.pid, families, types)
         ret = []
@@ -530,11 +543,11 @@ class Process:
 
     @wrap_exceptions
     def nice_get(self):
-        return cext_posix.getpriority(self.pid)
+        return cext.proc_priority_get(self.pid)
 
     @wrap_exceptions
     def nice_set(self, value):
-        return cext_posix.setpriority(self.pid, value)
+        return cext.proc_priority_set(self.pid, value)
 
     @wrap_exceptions
     def status(self):

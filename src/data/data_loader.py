@@ -4,9 +4,6 @@ try:
     GPU_ACCELERATED = True
     # Blackwell-specific RAPIDS optimizations
     try:
-        import cuml
-        import cugraph
-        import cuspatial
         BLACKWELL_RAPIDS_OPTIMIZED = True
         print("Blackwell RAPIDS optimizations enabled")
     except ImportError:
@@ -16,11 +13,12 @@ except ImportError:
     import pandas as pd
     GPU_ACCELERATED = False
     BLACKWELL_RAPIDS_OPTIMIZED = False
+import logging
 from typing import Optional, Dict, Any
 from .fabric_data_parser import FabricDataParser
-import logging
 
 class DataLoader:
+    """Data loader class for handling data loading with GPU acceleration and Fabric integration."""
     def __init__(self, file_path: str, use_fabric: bool = False,
                  workspace_id: str = None, lakehouse_id: str = None):
         """
@@ -48,14 +46,14 @@ class DataLoader:
             try:
                 # Try to load from Fabric first
                 return self.fabric_parser.load_data(self.file_path)
-            except Exception as e:
-                self.logger.warning(f"Fabric load failed: {e}. Falling back to local file")
-        
+            except (IOError, ValueError) as e:
+                self.logger.warning("Fabric load failed: %s. Falling back to local file", e)
+
         # Fall back to local file
         try:
             return pd.read_csv(self.file_path)
-        except Exception as e:
-            self.logger.error(f"Error loading data: {str(e)}")
+        except (IOError, ValueError) as e:
+            self.logger.error("Error loading data: %s", e)
             return None
 
     def load_options_data(self) -> Optional[Dict[str, Any]]:
@@ -64,9 +62,9 @@ class DataLoader:
             try:
                 # Try to load from Fabric first
                 return self.fabric_parser.parse_options_data(self.file_path)
-            except Exception as e:
-                self.logger.warning(f"Fabric options load failed: {e}")
-        
+            except (IOError, ValueError) as e:
+                self.logger.warning("Fabric options load failed: %s", e)
+
         # Fall back to local file
         try:
             df = pd.read_csv(self.file_path)
@@ -75,6 +73,6 @@ class DataLoader:
                 'underlying_price': df['underlying_price'].iloc[0],
                 'timestamp': pd.to_datetime('now')
             }
-        except Exception as e:
-            self.logger.error(f"Error loading options data: {str(e)}")
+        except (IOError, ValueError) as e:
+            self.logger.error("Error loading options data: %s", e)
             return None
