@@ -1,5 +1,9 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
 from flask import Flask
-from src.app import main_bp  # Import the main_bp from app
+from app import main_bp  # Import the main_bp from app
 
 app = Flask(__name__)
 

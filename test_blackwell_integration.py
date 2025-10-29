@@ -53,8 +53,10 @@ def test_basic_functionality():
                 print(f"  ✅ Evaluation successful for {model_type}")
                 print(f"     MSE: {eval_result.get('mse', 'N/A'):.4f}")
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             print(f"  ❌ Exception in {model_type}: {e}")
+        except Exception as e:
+            print(f"  ❌ Unexpected exception in {model_type}: {e}")
 
 def test_tensorrt_optimization():
     """Test TensorRT optimization (mock test since we don't have actual models)."""
@@ -75,8 +77,10 @@ def test_tensorrt_optimization():
         else:
             print("  ❌ TensorRT optimization failed (expected without actual model)")
 
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError) as e:
         print(f"  ❌ TensorRT test failed: {e}")
+    except Exception as e:
+        print(f"  ❌ Unexpected TensorRT test error: {e}")
 
 def test_save_load():
     """Test model save and load functionality."""
@@ -115,8 +119,10 @@ def test_save_load():
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError) as e:
         print(f"  ❌ Save/load test failed: {e}")
+    except Exception as e:
+        print(f"  ❌ Unexpected save/load test error: {e}")
 
 if __name__ == "__main__":
     print("Starting Blackwell TensorRT Integration Tests")

@@ -56,7 +56,10 @@ class GeminiIntegration:
                 "success": True
             }
 
-        except (ValueError, Exception) as e:
+        except ValueError as e:
+            logger.error("Gemini analysis validation error: %s", e)
+            return {"error": f"Validation error: {str(e)}", "fallback": True}
+        except Exception as e:
             logger.error("Gemini analysis error: %s", e)
             return {"error": str(e), "fallback": True}
 
@@ -170,7 +173,10 @@ Provide analysis in a structured JSON format.
 
             return enhanced_predictions
 
-        except (ValueError, Exception) as e:
+        except ValueError as e:
+            logger.error("Failed to enhance predictions - validation error: %s", e)
+            return predictions
+        except Exception as e:
             logger.error("Failed to enhance predictions with Gemini: %s", e)
             return predictions
 
